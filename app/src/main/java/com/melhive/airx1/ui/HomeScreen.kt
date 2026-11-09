@@ -103,6 +103,19 @@ fun HomeScreen(onNavigate: (Screen) -> Unit) {
                 }
             }
         }
+        if (running && !a11yConnected) {
+            Card(colors = CardDefaults.cardColors(containerColor = AirBad.copy(alpha = 0.18f))) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("No cursor on screen?", fontWeight = FontWeight.Bold)
+                    Text(
+                        "The camera is running, but the AirX1 accessibility service is off, and it's what draws " +
+                            "the cursor and taps for you. Turn on AirX1 in Accessibility settings.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    TextButton(onClick = { Permissions.openAccessibilitySettings(ctx) }) { Text("Open Accessibility settings") }
+                }
+            }
+        }
         StatusRow(
             "Engine",
             running,

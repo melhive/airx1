@@ -124,6 +124,7 @@ class AirX1AccessibilityService : AccessibilityService() {
             wm?.addView(view, p)
             overlay = view
             params = p
+            LogBuffer.i("Cursor overlay ready")
         } catch (e: Exception) {
             LogBuffer.e("Could not add cursor overlay", e)
         }
@@ -171,7 +172,7 @@ class AirX1AccessibilityService : AccessibilityService() {
         keysWindow?.takeIf { it.shown }?.view?.hover(x, y)
         GestureBus.precision.value = running && (imeVisible || keysWindow?.shown == true)
 
-        view.update(snap, x, y, tips, target, running)
+        view.update(snap, x, y, tips, target, running, settings.handBubble)
         setKeepScreenOn(running && snap.armed)
         if (active && settings.smartSnap && !insidePanel(x, y)) snapTargets.requestScan(w * h)
     }

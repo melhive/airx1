@@ -38,6 +38,8 @@ data class AppSettings(
     val smartSnap: Boolean = true,
     val haptics: Boolean = true,
     val fingertipDots: Boolean = true,
+    /** Small live hand skeleton in the screen corner while running. */
+    val handBubble: Boolean = true,
     /** Show AirKeys automatically when a keyboard opens while armed. */
     val airKeysAuto: Boolean = true,
     /** Scroll mode distance multiplier. */
@@ -85,6 +87,7 @@ class SettingsRepository(context: Context) {
         val smartSnap = booleanPreferencesKey("smart_snap")
         val haptics = booleanPreferencesKey("haptics")
         val fingertipDots = booleanPreferencesKey("fingertip_dots")
+        val handBubble = booleanPreferencesKey("hand_bubble")
         val airKeysAuto = booleanPreferencesKey("airkeys_auto")
         val scrollSpeed = floatPreferencesKey("scroll_speed")
         val favorites = stringPreferencesKey("favorites")
@@ -110,6 +113,7 @@ class SettingsRepository(context: Context) {
             smartSnap = p[K.smartSnap] ?: d.smartSnap,
             haptics = p[K.haptics] ?: d.haptics,
             fingertipDots = p[K.fingertipDots] ?: d.fingertipDots,
+            handBubble = p[K.handBubble] ?: d.handBubble,
             airKeysAuto = p[K.airKeysAuto] ?: d.airKeysAuto,
             scrollSpeed = p[K.scrollSpeed] ?: d.scrollSpeed,
             favorites = p[K.favorites]?.split(',')?.filter { it.isNotBlank() } ?: d.favorites,
@@ -138,6 +142,7 @@ class SettingsRepository(context: Context) {
             p[K.smartSnap] = n.smartSnap
             p[K.haptics] = n.haptics
             p[K.fingertipDots] = n.fingertipDots
+            p[K.handBubble] = n.handBubble
             p[K.airKeysAuto] = n.airKeysAuto
             p[K.scrollSpeed] = n.scrollSpeed
             p[K.favorites] = n.favorites.joinToString(",")

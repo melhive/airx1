@@ -33,10 +33,10 @@ jobs:
           fetch-depth: 0
 
       - name: Version
-        # versionCode must always increase. v0.1.0 (code 1) and v0.2.0 (code 2) were
-        # published by hand, so CI releases use run number + 2.
+        # versionCode must always increase. v0.1.0 (code 1) and v0.2.0 (code 2) and v0.2.1 (code 3) were
+        # published by hand, so CI releases use run number + 3.
         run: |
-          N=$((GITHUB_RUN_NUMBER + 2))
+          N=$((GITHUB_RUN_NUMBER + 3))
           echo "AIRX1_VERSION_CODE=$N" >> "$GITHUB_ENV"
           echo "AIRX1_VERSION_NAME=0.2.$N" >> "$GITHUB_ENV"
 

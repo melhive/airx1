@@ -61,6 +61,7 @@ fun SettingsScreen(onCalibrate: () -> Unit, onFavorites: () -> Unit) {
                 label = { Text("Scroll (feeds)") })
         }
         SwitchRow("Smart Snap", "Cursor locks onto buttons and icons; taps hit their center.", s.smartSnap) { v -> save { it.copy(smartSnap = v) } }
+        SwitchRow("Hand preview", "Small live hand outline in the corner of the screen, so you can see tracking works.", s.handBubble) { v -> save { it.copy(handBubble = v) } }
         SwitchRow("Fingertip dots", "Show your five fingertips as small dots around the cursor.", s.fingertipDots) { v -> save { it.copy(fingertipDots = v) } }
         SwitchRow("AirKeys when typing", "Open the big-key AirX1 keyboard automatically when a keyboard appears (while armed).", s.airKeysAuto) { v -> save { it.copy(airKeysAuto = v) } }
         SwitchRow("Vibration", "Feel taps, Back/Home and arming.", s.haptics) { v -> save { it.copy(haptics = v) } }

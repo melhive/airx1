@@ -73,4 +73,5 @@ Choices made while building, with reasons. Newest at the bottom of each section.
 - **Quick Launcher defaults:** if no favorites are picked, it uses common apps that are installed (YouTube, WhatsApp, Chrome, TikTok, …), then alphabetical. Uses a `<queries>` launcher intent rather than QUERY_ALL_PACKAGES.
 - **QS tile → invisible StartActivity → start service**, because the camera foreground service must start from the foreground.
 - **Haptics:** a click for taps and actions, a heavy click for long press and disarm, a double click for arm.
-- **Version scheme:** v0.1.0 (code 1) and v0.2.0 (code 2) were published by hand; CI releases use run number + 2 and name `0.2.<N>`.
+- **Version scheme:** v0.1.0–v0.2.1 (codes 1–3) were published by hand; CI releases use run number + 3 and name `0.2.<N>`.
+- **Always-visible status (v0.2.1):** a status pill at the top (show your hand / hold a fist to arm / armed), a small live hand outline in the corner (no camera image), and a clearly visible white disarmed cursor. Users could not tell whether AirX1 was working when the disarmed cursor was a faint grey dot.
