@@ -1,0 +1,14 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+.kotlin/
+.DS_Store
+# Signing material must never be committed
+*.jks
+*.keystore
+keystore.properties
+# Model is downloaded at build time
+app/src/main/assets/hand_landmarker.task

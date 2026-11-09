@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AirX1</string>
+    <string name="tagline">Your Hands Are the Interface.</string>
+    <string name="accessibility_summary">Control your phone with air hand gestures</string>
+    <string name="accessibility_description">AirX1 lets you control this phone with hand gestures seen by the front camera. When enabled, it draws a cursor on screen and performs taps, swipes and navigation actions (Back, Home, Recents) on your behalf, but only while you have armed it with a gesture. It also watches which window is open (for example, when the keyboard appears) to make the cursor more precise. All camera processing happens on this device: AirX1 has no internet permission and never saves or sends camera images.</string>
+    <string name="notif_channel_name">Hand tracking</string>
+    <string name="notif_title">AirX1 is watching for your hand</string>
+    <string name="notif_text">Camera is processed on-device only. Tap Stop to turn off.</string>
+    <string name="notif_stop">Stop</string>
+</resources>
