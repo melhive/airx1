@@ -53,9 +53,14 @@ sealed interface GestureEvent {
     data class Zoom(val scale: Float, val x: Float, val y: Float) : GestureEvent
     data class GlobalAction(val action: NavAction) : GestureEvent
     data class ArmChanged(val armed: Boolean, val reason: String) : GestureEvent
+    /** Open palm held: show the Quick Launcher. */
+    data object OpenLauncher : GestureEvent
 }
 
-enum class EngineState { DISARMED, HOVER, PINCHING }
+enum class EngineState { DISARMED, HOVER, PINCHING, DRAGGING }
+
+/** Normalized screen point. */
+data class ScreenPoint(val x: Float, val y: Float)
 
 /** Continuous state, published every frame (cursor position, debug values). */
 data class EngineSnapshot(
@@ -77,6 +82,17 @@ data class EngineSnapshot(
     val armProgress: Float = 0f,
     val handedness: Handedness = Handedness.UNKNOWN,
     val landmarks: List<Landmark> = emptyList(),
+    val mode: InputMode = InputMode.CURSOR,
+    /** Progress (0..1) of a navigation/launcher pose hold, and what it will do. */
+    val poseProgress: Float = 0f,
+    val poseLabel: String? = null,
+    /** Progress (0..1) of a dwell click. */
+    val dwellProgress: Float = 0f,
+    /** Fingertip ghost dots around the cursor (thumb, index, middle, ring, pinky). */
+    val fingertips: List<ScreenPoint> = emptyList(),
+    /** Scroll mode: -1 (scroll up, fast) .. 0 (dead zone) .. 1 (scroll down, fast). */
+    val scrollLevel: Float = 0f,
+    val precision: Boolean = false,
 )
 
 data class EngineOutput(val snapshot: EngineSnapshot, val events: List<GestureEvent>)

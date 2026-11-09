@@ -38,6 +38,9 @@ object GestureBus {
      */
     val inputSuppressed = MutableStateFlow(false)
 
+    /** True while a keyboard (Gboard or AirKeys) is visible: the engine slows the cursor. */
+    val precision = MutableStateFlow(false)
+
     /** Camera frames for the Debug view. Only produced while [previewViewers] > 0; never saved. */
     val preview = MutableStateFlow<Bitmap?>(null)
     val previewViewers = AtomicInteger(0)

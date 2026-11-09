@@ -2,6 +2,9 @@ package com.melhive.airx1.engine
 
 enum class HandPreference { ANY, LEFT, RIGHT }
 
+/** CURSOR: aim and pinch. SCROLL: raise/lower the hand to scroll, flick for next. */
+enum class InputMode { CURSOR, SCROLL }
+
 /** Which point of the hand drives the cursor. */
 enum class CursorAnchor {
     /** Index knuckle (landmark 5): barely moves when you pinch, so taps land where you aim. */
@@ -30,9 +33,28 @@ data class EngineConfig(
     val mirrorX: Boolean = false,
     val armHoldMs: Long = 1000,
     val autoDisarmMs: Long = 10_000,
-    /** Pinches shorter than this are glitches, longer than [tapMaxMs] are not taps. */
+    val mode: InputMode = InputMode.CURSOR,
+    /** Pinches shorter than this are glitches. Held this long without moving = long press. */
     val tapMinMs: Long = 50,
-    val tapMaxMs: Long = 600,
+    val longPressMs: Long = 600,
+    /** Cursor travel (normalized screen units) while pinched that turns a pinch into a drag. */
+    val dragStartDist: Float = 0.035f,
+    /** Hold time for Back/Home/Recents poses, and for the open-palm launcher. */
+    val poseHoldMs: Long = 600,
+    val launcherHoldMs: Long = 1000,
+    val poseCooldownMs: Long = 800,
+    /** Dwell click: keep the cursor within [dwellRadius] for [dwellMs]. */
+    val dwellEnabled: Boolean = false,
+    val dwellMs: Long = 1000,
+    val dwellRadius: Float = 0.025f,
+    /** Scroll mode. Dead zone is a fraction of the half-height of the active area. */
+    val scrollDeadZone: Float = 0.15f,
+    val scrollIntervalMs: Long = 350,
+    val flickSpeed: Float = 2.0f,
+    /** Motion gain while precision mode is on (keyboard open). */
+    val precisionGain: Float = 0.45f,
+    /** Scale of the fingertip ghost dots relative to the active area. */
+    val fingertipScale: Float = 0.5f,
     val tapDebounceMs: Long = 250,
     /** After arming, ignore pinches for this long (hand is still opening from the fist). */
     val armGraceMs: Long = 500,

@@ -108,6 +108,7 @@ class HandTrackingService : LifecycleService() {
 
     /** Engine thread. */
     private fun onFrame(frame: HandFrame?, nowMs: Long) {
+        engine.precision = GestureBus.precision.value
         val out = engine.process(frame, nowMs)
         GestureBus.snapshot.value = out.snapshot
         out.events.forEach(::publish)
@@ -116,7 +117,7 @@ class HandTrackingService : LifecycleService() {
     private fun publish(event: GestureEvent) {
         if (event is GestureEvent.ArmChanged) {
             LogBuffer.i(if (event.armed) "ARMED (${event.reason})" else "DISARMED (${event.reason})")
-        } else {
+        } else if (event !is GestureEvent.DragMove) {
             LogBuffer.d("Gesture: $event")
         }
         GestureBus.emit(event)
@@ -132,9 +133,10 @@ class HandTrackingService : LifecycleService() {
 
     private fun disarm(reason: String) {
         post {
-            engine.disarm(reason, SystemClock.uptimeMillis())?.let {
+            val events = engine.disarm(reason, SystemClock.uptimeMillis())
+            if (events.isNotEmpty()) {
                 GestureBus.snapshot.value = GestureBus.snapshot.value.copy(armed = false)
-                publish(it)
+                events.forEach(::publish)
             }
         }
     }

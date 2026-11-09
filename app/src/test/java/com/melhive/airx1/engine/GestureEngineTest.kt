@@ -2,7 +2,6 @@ package com.melhive.airx1.engine
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -122,8 +121,8 @@ class GestureEngineTest {
         val r = newRun()
         r.arm()
         val e = r.engine.disarm("stop", r.now)
-        assertEquals(GestureEvent.ArmChanged(false, "stop"), e)
-        assertNull(r.engine.disarm("stop again", r.now))
+        assertEquals(listOf(GestureEvent.ArmChanged(false, "stop")), e)
+        assertTrue(r.engine.disarm("stop again", r.now).isEmpty())
         r.feed(TestHands.pinch(), 100)
         r.feed(TestHands.point(), 100)
         assertTrue(r.taps().isEmpty())
