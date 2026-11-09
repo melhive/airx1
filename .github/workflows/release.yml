@@ -25,15 +25,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # versionCode must always increase; this workflow's run number does that.
-      AIRX1_VERSION_CODE: ${{ github.run_number }}
-      AIRX1_VERSION_NAME: 0.1.${{ github.run_number }}
       MODEL_URL: https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
       MODEL_PATH: app/src/main/assets/hand_landmarker.task
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Version
+        # versionCode must always increase. v0.1.0 (versionCode 1) was published by hand,
+        # so CI releases start at run number + 1.
+        run: |
+          N=$((GITHUB_RUN_NUMBER + 1))
+          echo "AIRX1_VERSION_CODE=$N" >> "$GITHUB_ENV"
+          echo "AIRX1_VERSION_NAME=0.1.$N" >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@v4
         with:
@@ -56,21 +61,30 @@ jobs:
           [ -f "$MODEL_PATH" ] || curl -fsSL --retry 3 -o "$MODEL_PATH" "$MODEL_URL"
           echo "$(cat model.sha256)  $MODEL_PATH" | sha256sum -c -
 
-      - name: Decode signing key
+      - name: Check signing key
+        id: key
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_B64" ]; then
-            echo "::error::Signing secrets are missing. Releases must be signed with the same key so updates install over older versions. See README → Release signing."
-            exit 1
+          KS="$RUNNER_TEMP/airx1-release.jks"
+          if [ -n "$KEYSTORE_B64" ] && echo "$KEYSTORE_B64" | base64 --decode > "$KS" 2>/dev/null \
+             && keytool -list -keystore "$KS" -storepass:env KS_PASS -alias airx1 > /dev/null 2>&1; then
+            echo "AIRX1_KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            rm -f "$KS"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No usable signing key in secrets; skipping the release. Releases must be signed with the same key so updates install over older versions. See README → Release signing."
+            echo "### Release skipped: signing secrets missing or invalid" >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/airx1-release.jks"
-          echo "AIRX1_KEYSTORE_PATH=$RUNNER_TEMP/airx1-release.jks" >> "$GITHUB_ENV"
 
       - name: Unit tests
+        if: steps.key.outputs.ready == 'true'
         run: gradle --no-daemon testDebugUnitTest --stacktrace
 
       - name: Build signed release APK
+        if: steps.key.outputs.ready == 'true'
         env:
           AIRX1_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           AIRX1_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -83,6 +97,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/airx1-release.jks"
 
       - name: Verify signature and privacy
+        if: steps.key.outputs.ready == 'true'
         run: |
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
           case "$APK" in *unsigned*) echo "::error::Release APK is unsigned"; exit 1;; esac
@@ -97,6 +112,7 @@ jobs:
           cp "$APK" airx1.apk
 
       - name: Publish GitHub Release
+        if: steps.key.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
