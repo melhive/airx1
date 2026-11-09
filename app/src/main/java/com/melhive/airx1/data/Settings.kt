@@ -11,6 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.melhive.airx1.engine.CursorAnchor
 import com.melhive.airx1.engine.EngineConfig
 import com.melhive.airx1.engine.HandPreference
+import com.melhive.airx1.engine.InputMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.math.pow
@@ -30,6 +31,19 @@ data class AppSettings(
     val hand: HandPreference = HandPreference.ANY,
     val anchor: CursorAnchor = CursorAnchor.KNUCKLE,
     val calibrated: Boolean = false,
+    val mode: InputMode = InputMode.CURSOR,
+    val dwellEnabled: Boolean = false,
+    val dwellMs: Float = 1000f,
+    /** Pull the cursor onto nearby buttons and tap their center. */
+    val smartSnap: Boolean = true,
+    val haptics: Boolean = true,
+    val fingertipDots: Boolean = true,
+    /** Show AirKeys automatically when a keyboard opens while armed. */
+    val airKeysAuto: Boolean = true,
+    /** Scroll mode distance multiplier. */
+    val scrollSpeed: Float = 1f,
+    /** Quick Launcher apps (package names), in order. Empty = sensible defaults. */
+    val favorites: List<String> = emptyList(),
 ) {
     fun toEngineConfig() = EngineConfig(
         regionLeft = regionLeft,
@@ -44,6 +58,9 @@ data class AppSettings(
         pinchOff = pinchOff,
         handPreference = hand,
         anchor = anchor,
+        mode = mode,
+        dwellEnabled = dwellEnabled,
+        dwellMs = dwellMs.toLong(),
     )
 }
 
@@ -62,6 +79,15 @@ class SettingsRepository(context: Context) {
         val hand = stringPreferencesKey("hand")
         val anchor = stringPreferencesKey("anchor")
         val calibrated = booleanPreferencesKey("calibrated")
+        val mode = stringPreferencesKey("mode")
+        val dwellEnabled = booleanPreferencesKey("dwell_enabled")
+        val dwellMs = floatPreferencesKey("dwell_ms")
+        val smartSnap = booleanPreferencesKey("smart_snap")
+        val haptics = booleanPreferencesKey("haptics")
+        val fingertipDots = booleanPreferencesKey("fingertip_dots")
+        val airKeysAuto = booleanPreferencesKey("airkeys_auto")
+        val scrollSpeed = floatPreferencesKey("scroll_speed")
+        val favorites = stringPreferencesKey("favorites")
     }
 
     private fun read(p: Preferences): AppSettings {
@@ -78,6 +104,15 @@ class SettingsRepository(context: Context) {
             hand = p[K.hand]?.let { runCatching { HandPreference.valueOf(it) }.getOrNull() } ?: d.hand,
             anchor = p[K.anchor]?.let { runCatching { CursorAnchor.valueOf(it) }.getOrNull() } ?: d.anchor,
             calibrated = p[K.calibrated] ?: d.calibrated,
+            mode = p[K.mode]?.let { runCatching { InputMode.valueOf(it) }.getOrNull() } ?: d.mode,
+            dwellEnabled = p[K.dwellEnabled] ?: d.dwellEnabled,
+            dwellMs = p[K.dwellMs] ?: d.dwellMs,
+            smartSnap = p[K.smartSnap] ?: d.smartSnap,
+            haptics = p[K.haptics] ?: d.haptics,
+            fingertipDots = p[K.fingertipDots] ?: d.fingertipDots,
+            airKeysAuto = p[K.airKeysAuto] ?: d.airKeysAuto,
+            scrollSpeed = p[K.scrollSpeed] ?: d.scrollSpeed,
+            favorites = p[K.favorites]?.split(',')?.filter { it.isNotBlank() } ?: d.favorites,
         )
     }
 
@@ -97,6 +132,15 @@ class SettingsRepository(context: Context) {
             p[K.hand] = n.hand.name
             p[K.anchor] = n.anchor.name
             p[K.calibrated] = n.calibrated
+            p[K.mode] = n.mode.name
+            p[K.dwellEnabled] = n.dwellEnabled
+            p[K.dwellMs] = n.dwellMs
+            p[K.smartSnap] = n.smartSnap
+            p[K.haptics] = n.haptics
+            p[K.fingertipDots] = n.fingertipDots
+            p[K.airKeysAuto] = n.airKeysAuto
+            p[K.scrollSpeed] = n.scrollSpeed
+            p[K.favorites] = n.favorites.joinToString(",")
         }
     }
 

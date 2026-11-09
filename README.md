@@ -4,19 +4,30 @@
 
 AirX1 lets you control your real Android phone with air hand gestures seen by the front camera. It drives a cursor and performs real taps on whatever app is open, using Android's AccessibilityService. Everything runs on the phone: AirX1 has **no internet permission** and never saves or sends camera frames.
 
-## Status
+## What it does (v0.2)
 
-**Core build (v0.1).** It covers the camera pipeline, the cursor, arm/disarm, pinch-to-tap, calibration, a debug view, settings and the log. Navigation poses, long press, drag/scroll, Scroll mode, dwell click, the Quick Launcher, keyboard precision mode, the Quick Settings tile and haptics come next. The plan is in [docs/DECISIONS.md](docs/DECISIONS.md).
-
-## Gestures (this build)
+**Cursor mode**: aim and pinch, like a mouse in the air
 
 | Gesture | Action |
 |---|---|
 | ✊ Fist, hold 1 s | Arm / disarm (nothing is clicked while disarmed) |
-| ☝️ Point and move | Move the cursor |
-| 👌 Quick pinch (thumb + index) | Tap |
+| ☝️ Point and move | Move the cursor. It locks onto buttons and icons (**Smart Snap**) |
+| 👌 Quick pinch | Tap |
+| 👌 Pinch and hold | Long press |
+| 👌 Pinch and move | Drag, scroll, swipe, glide typing |
+| ✌️ Two fingers, hold | Back |
+| 🤟 Three fingers, hold | Home |
+| 🖖 Four fingers (thumb folded), hold | Recents |
+| 🖐️ Open palm, hold 1 s | **Quick Launcher**: your 8 favorite apps, Alerts, Quick settings, Scroll mode, Keys |
+| ⏱️ Hold still (optional) | Dwell click |
 
-Safety: the notification **Stop** button turns the camera off. AirX1 also disarms automatically after 10 s with no hand, and when the screen turns off.
+**Scroll mode**, for feeds and reading: hand above the middle scrolls up, below scrolls down (further means faster). A quick flick goes to the next or previous item.
+
+**Typing**: **AirKeys**, a big-key keyboard that opens automatically when you tap a text field while armed. Or switch to Gboard and glide-type with pinch-and-move, or use the mic.
+
+**Feedback**: your five fingertips shown as dots, rings that fill before a click or pose fires, vibration, and a Quick Settings tile to turn AirX1 on and off.
+
+**Safety**: the notification **Stop** button turns the camera off. AirX1 disarms after 10 s with no hand and when the screen turns off. A drag in progress is always released.
 
 ## Download
 

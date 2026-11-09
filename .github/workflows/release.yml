@@ -33,12 +33,12 @@ jobs:
           fetch-depth: 0
 
       - name: Version
-        # versionCode must always increase. v0.1.0 (versionCode 1) was published by hand,
-        # so CI releases start at run number + 1.
+        # versionCode must always increase. v0.1.0 (code 1) and v0.2.0 (code 2) were
+        # published by hand, so CI releases use run number + 2.
         run: |
-          N=$((GITHUB_RUN_NUMBER + 1))
+          N=$((GITHUB_RUN_NUMBER + 2))
           echo "AIRX1_VERSION_CODE=$N" >> "$GITHUB_ENV"
-          echo "AIRX1_VERSION_NAME=0.1.$N" >> "$GITHUB_ENV"
+          echo "AIRX1_VERSION_NAME=0.2.$N" >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@v4
         with:

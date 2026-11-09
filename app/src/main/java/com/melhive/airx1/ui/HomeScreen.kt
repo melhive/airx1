@@ -41,6 +41,12 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.melhive.airx1.bus.GestureBus
 import com.melhive.airx1.service.HandTrackingService
+import com.melhive.airx1.data.AppSettings
+import com.melhive.airx1.data.SettingsRepository
+import com.melhive.airx1.engine.InputMode
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(onNavigate: (Screen) -> Unit) {
@@ -58,6 +64,9 @@ fun HomeScreen(onNavigate: (Screen) -> Unit) {
     val running by GestureBus.engineRunning.collectAsStateWithLifecycle()
     val snap by GestureBus.snapshot.collectAsStateWithLifecycle()
     val fps by GestureBus.fps.collectAsStateWithLifecycle()
+    val repo = remember { SettingsRepository(ctx) }
+    val scope = rememberCoroutineScope()
+    val settings by repo.flow.collectAsStateWithLifecycle(initialValue = AppSettings())
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { camera = it }
     val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notifications = it }
@@ -112,10 +121,17 @@ fun HomeScreen(onNavigate: (Screen) -> Unit) {
 
         if (running) {
             Text(
-                if (snap.armed) "Armed: pinch to tap. Make a fist for 1 s to disarm."
+                if (snap.armed) "Armed: pinch to tap. Open palm for the Quick Launcher. Fist for 1 s to disarm."
                 else "Disarmed. Make a fist and hold it for 1 s to arm.",
                 style = MaterialTheme.typography.bodyMedium,
             )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("Mode", style = MaterialTheme.typography.bodyLarge)
+            FilterChip(selected = settings.mode == InputMode.CURSOR, onClick = { scope.launch { repo.update { it.copy(mode = InputMode.CURSOR) } } },
+                label = { Text("Cursor") })
+            FilterChip(selected = settings.mode == InputMode.SCROLL, onClick = { scope.launch { repo.update { it.copy(mode = InputMode.SCROLL) } } },
+                label = { Text("Scroll") })
         }
 
         Spacer(Modifier.height(4.dp))

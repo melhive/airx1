@@ -30,6 +30,7 @@ enum class Screen(val title: String) {
     SETTINGS("Settings"),
     LOGS("Log"),
     HOWTO("How to use"),
+    FAVORITES("Quick Launcher apps"),
 }
 
 class MainActivity : ComponentActivity() {
@@ -44,14 +45,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AirX1App() {
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
-    BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
+    val back = { screen = if (screen == Screen.FAVORITES) Screen.SETTINGS else Screen.HOME }
+    BackHandler(enabled = screen != Screen.HOME) { back() }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(screen.title) },
                 navigationIcon = {
                     if (screen != Screen.HOME) {
-                        IconButton(onClick = { screen = Screen.HOME }) {
+                        IconButton(onClick = { back() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     }
@@ -64,7 +66,11 @@ private fun AirX1App() {
                 Screen.HOME -> HomeScreen(onNavigate = { screen = it })
                 Screen.CALIBRATE -> CalibrationScreen(onDone = { screen = Screen.HOME })
                 Screen.DEBUG -> DebugScreen()
-                Screen.SETTINGS -> SettingsScreen(onCalibrate = { screen = Screen.CALIBRATE })
+                Screen.SETTINGS -> SettingsScreen(
+                    onCalibrate = { screen = Screen.CALIBRATE },
+                    onFavorites = { screen = Screen.FAVORITES },
+                )
+                Screen.FAVORITES -> FavoritesScreen()
                 Screen.LOGS -> LogScreen()
                 Screen.HOWTO -> HowToScreen()
             }

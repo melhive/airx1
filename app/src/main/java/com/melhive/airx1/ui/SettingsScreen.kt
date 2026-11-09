@@ -28,11 +28,14 @@ import com.melhive.airx1.data.AppSettings
 import com.melhive.airx1.data.SettingsRepository
 import com.melhive.airx1.engine.CursorAnchor
 import com.melhive.airx1.engine.HandPreference
+import com.melhive.airx1.engine.InputMode
+import androidx.compose.material3.Switch
+import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 
 /** All settings apply live to the running engine. */
 @Composable
-fun SettingsScreen(onCalibrate: () -> Unit) {
+fun SettingsScreen(onCalibrate: () -> Unit, onFavorites: () -> Unit) {
     val ctx = LocalContext.current
     val repo = remember { SettingsRepository(ctx) }
     val scope = rememberCoroutineScope()
@@ -48,6 +51,31 @@ fun SettingsScreen(onCalibrate: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
         )
         OutlinedButton(onClick = onCalibrate, modifier = Modifier.fillMaxWidth()) { Text("Run calibration") }
+        HorizontalDivider()
+
+        Text("Mode", style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = s.mode == InputMode.CURSOR, onClick = { save { it.copy(mode = InputMode.CURSOR) } },
+                label = { Text("Cursor (aim + pinch)") })
+            FilterChip(selected = s.mode == InputMode.SCROLL, onClick = { save { it.copy(mode = InputMode.SCROLL) } },
+                label = { Text("Scroll (feeds)") })
+        }
+        SwitchRow("Smart Snap", "Cursor locks onto buttons and icons; taps hit their center.", s.smartSnap) { v -> save { it.copy(smartSnap = v) } }
+        SwitchRow("Fingertip dots", "Show your five fingertips as small dots around the cursor.", s.fingertipDots) { v -> save { it.copy(fingertipDots = v) } }
+        SwitchRow("AirKeys when typing", "Open the big-key AirX1 keyboard automatically when a keyboard appears (while armed).", s.airKeysAuto) { v -> save { it.copy(airKeysAuto = v) } }
+        SwitchRow("Vibration", "Feel taps, Back/Home and arming.", s.haptics) { v -> save { it.copy(haptics = v) } }
+        SwitchRow("Dwell click", "Hold the cursor still to tap (for when pinching is hard).", s.dwellEnabled) { v -> save { it.copy(dwellEnabled = v) } }
+        if (s.dwellEnabled) {
+            SettingSlider("Dwell time", s.dwellMs / 1000f, 0.6f..2.0f, "%.1f s", "How long to hold still before it taps.") { v ->
+                save { it.copy(dwellMs = v * 1000f) }
+            }
+        }
+        SettingSlider("Scroll distance", s.scrollSpeed, 0.5f..2f, "%.1f×", "Scroll mode: how far each scroll step moves.") { v ->
+            save { it.copy(scrollSpeed = v) }
+        }
+        OutlinedButton(onClick = onFavorites, modifier = Modifier.fillMaxWidth()) {
+            Text(if (s.favorites.isEmpty()) "Choose Quick Launcher apps" else "Quick Launcher apps (${s.favorites.size})")
+        }
         HorizontalDivider()
 
         SettingSlider("Sensitivity", s.sensitivity, 0.5f..2.5f, "%.2f×",
@@ -107,5 +135,16 @@ private fun SettingSlider(
         Slider(value = local.coerceIn(range), onValueChange = { local = it }, valueRange = range,
             onValueChangeFinished = { onCommit(local) })
         Text(help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun SwitchRow(label: String, help: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(label, style = MaterialTheme.typography.titleSmall)
+            Text(help, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }

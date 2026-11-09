@@ -5,11 +5,8 @@ Choices made while building, with reasons. Newest at the bottom of each section.
 ## Process and scope
 
 - **Core first, then the rest.** The first build is a vertical slice (camera → engine → cursor → pinch-tap → calibration) so it can be tested on a real phone before the rest is built. Green CI only proves the code compiles; it can't tell whether a pinch registers as a tap.
-- **Roadmap after the core test:**
-  1. Navigation poses (Back/Home/Recents), long press, dwell click, Quick Launcher
-  2. Pinch-drag (scroll/swipe/glide typing), Scroll mode, keyboard precision mode
-  3. Quick Settings tile, haptics, full settings, How-to updates
-  4. Later: two-hand zoom, AirX1 big-key keyboard
+- **v0.2 built all planned features in one go** at the user's request, before on-device results for v0.1 were in. Tuning will follow device testing.
+- **Later:** two-hand zoom, an experimental 5-finger tap mode, an optional GPU delegate.
 
 ## Platform and build
 
@@ -62,3 +59,18 @@ Choices made while building, with reasons. Newest at the bottom of each section.
 
 - No navigation library: a small enum-based screen switcher keeps dependencies minimal.
 - Calibration (about 15 s): point with a relaxed thumb → pinch → trace the corners. Thresholds are set at 35% (close) and 55% (open) of the way from the pinched median to the relaxed median. The active area is the 5th to 95th percentile of the anchor positions, inset by 5% so edges are reachable.
+
+## v0.2 features
+
+- **Smart Snap** reads clickable, long-clickable and checkable nodes from all interactive windows (plus leaf nodes with text in the keyboard window, for Gboard keys). It ignores containers covering more than 25% of the screen and only considers targets in the topmost window under the cursor. The radius is 28 dp. Taps hit the target's center; the cursor is drawn 30% of the way towards it. Scans run off the main thread, at most every 250 ms, and only after a screen change (or every 1.5 s) while armed.
+- **Five fingertip dots, but only the index dot clicks.** A front camera can't reliably detect a finger "press" in the air, and five shaky dots on small keys would mistype.
+- **Drag = chained continued strokes** (`StrokeDescription.continueStroke`). Each 24 ms segment is dispatched when the previous one completes, so one finger stays down. `DragEnd` is accepted even after disarming, so a finger is never left down.
+- **Scroll semantics:** `Scroll(dir)` is the content direction (UP reveals content above, so the finger moves down). `Swipe(dir)` is the finger direction (a hand flick up means a finger swipe up, which is the next item in TikTok, Reels and Shorts). Swipes stay between 28% and 72% of the screen height to avoid edge gestures.
+- **Recenter after a flick:** without it, a hand left high after a flick up would immediately scroll the opposite way.
+- **Precision mode** (keyboard or AirKeys visible) uses relative motion at 0.45× gain. When it ends, the cursor returns to absolute mapping (a small jump).
+- **AirKeys** types with ACTION_SET_TEXT instead of being an input method: no IME switching, and Gboard stays available. Some fields (many WebViews) reject SET_TEXT, and AirKeys then says to use Gboard. It opens automatically when a keyboard appears while armed in Cursor mode, unless you chose Gboard for that field.
+- **Panels (Launcher, AirKeys) are drawn on a Canvas** in non-focusable overlay windows, so the app keeps text focus. Air taps call tiles directly; finger taps also work. The cursor overlay is re-added after a panel opens so it stays on top.
+- **Quick Launcher defaults:** if no favorites are picked, it uses common apps that are installed (YouTube, WhatsApp, Chrome, TikTok, …), then alphabetical. Uses a `<queries>` launcher intent rather than QUERY_ALL_PACKAGES.
+- **QS tile → invisible StartActivity → start service**, because the camera foreground service must start from the foreground.
+- **Haptics:** a click for taps and actions, a heavy click for long press and disarm, a double click for arm.
+- **Version scheme:** v0.1.0 (code 1) and v0.2.0 (code 2) were published by hand; CI releases use run number + 2 and name `0.2.<N>`.
