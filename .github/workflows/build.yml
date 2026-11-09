@@ -1,7 +1,14 @@
-name: Build APK
+name: Build APK (debug)
+
+# Development builds: every push to a branch other than main, every pull request,
+# or manual dispatch. Produces a DEBUG APK ("AirX1 Debug", com.melhive.airx1.debug)
+# that installs next to the real app. Normal users should use the release link
+# in the README instead (release.yml).
 
 on:
   push:
+    branches-ignore: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -49,36 +56,13 @@ jobs:
       - name: Unit tests
         run: gradle --no-daemon testDebugUnitTest --stacktrace
 
-      - name: Decode release keystore (if secrets exist)
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/airx1-release.jks"
-            echo "AIRX1_KEYSTORE_PATH=$RUNNER_TEMP/airx1-release.jks" >> "$GITHUB_ENV"
-            echo "VARIANT=release" >> "$GITHUB_ENV"
-            echo "Release signing enabled."
-          else
-            echo "VARIANT=debug" >> "$GITHUB_ENV"
-            echo "::warning::Signing secrets not set; building a DEBUG APK. Each debug build may need an uninstall before updating."
-          fi
-
-      - name: Build APK
-        env:
-          AIRX1_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          AIRX1_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          AIRX1_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          if [ "$VARIANT" = "release" ]; then
-            gradle --no-daemon assembleRelease --stacktrace
-          else
-            gradle --no-daemon assembleDebug --stacktrace
-          fi
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug --stacktrace
 
       - name: Collect APK
         run: |
-          APK=$(ls app/build/outputs/apk/$VARIANT/*.apk | head -1)
-          OUT="airx1-$VARIANT-${GITHUB_RUN_NUMBER}.apk"
+          APK=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          OUT="airx1-debug-${GITHUB_RUN_NUMBER}.apk"
           cp "$APK" "$OUT"
           echo "APK_OUT=$OUT" >> "$GITHUB_ENV"
           ls -la "$OUT"

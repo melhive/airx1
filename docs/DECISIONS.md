@@ -19,7 +19,10 @@ Choices made while building, with reasons. Newest at the bottom of each section.
 - **Model URL pinned to version `1`** (`…/float16/1/hand_landmarker.task`) rather than `latest`, with a SHA-256 in `model.sha256`. On 2026-11-09 both URLs served identical bytes. Pinning means an upstream model change can't silently change behavior.
 - **ABI filter** arm64-v8a + armeabi-v7a only, to keep the APK smaller. Emulators (x86) aren't supported.
 - **INTERNET removed** with `tools:node="remove"` (and `ACCESS_NETWORK_STATE` too), plus a CI check with `aapt2 dump permissions`.
-- **Debug fallback signing:** without secrets, CI builds debug. README explains why setting the release secrets early avoids uninstall/re-enable cycles.
+- **Distribution like ZENITH:** every push to `main` publishes a signed GitHub Release with a fixed asset name (`airx1.apk`), so `releases/latest/download/airx1.apk` always installs the newest version. The release fails if signing secrets are missing; it never ships an unsigned or debug APK.
+- **versionCode = release workflow run number**, versionName `0.1.<N>`.
+- **Debug builds use `applicationIdSuffix .debug`** ("AirX1 Debug"), so they install next to the release and never hit signature conflicts.
+- **No in-app update check** (ZENITH has one): it would need the INTERNET permission, which breaks the privacy promise. Users get updates by opening the release link again.
 
 ## Tracking pipeline
 

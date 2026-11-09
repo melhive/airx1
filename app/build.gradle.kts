@@ -21,8 +21,10 @@ android {
         applicationId = "com.melhive.airx1"
         minSdk = 26
         targetSdk = 35
-        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
-        versionName = "0.1.0"
+        // Release CI sets these from the release workflow's run number, so every
+        // release has a higher versionCode and installs as an update.
+        versionCode = System.getenv("AIRX1_VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = System.getenv("AIRX1_VERSION_NAME") ?: "0.1.0-dev"
         ndk {
             // Real phones only; keeps the APK small.
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
@@ -34,13 +36,18 @@ android {
             create("release") {
                 storeFile = file(releaseKeystorePath!!)
                 storePassword = System.getenv("AIRX1_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("AIRX1_KEY_ALIAS")
+                keyAlias = System.getenv("AIRX1_KEY_ALIAS") ?: "airx1"
                 keyPassword = System.getenv("AIRX1_KEY_PASSWORD")
             }
         }
     }
 
     buildTypes {
+        debug {
+            // Debug builds install as a separate app, so they never clash with the signed release.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
             if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")

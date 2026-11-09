@@ -18,55 +18,59 @@ AirX1 lets you control your real Android phone with air hand gestures seen by th
 
 Safety: the notification **Stop** button turns the camera off. AirX1 also disarms automatically after 10 s with no hand, and when the screen turns off.
 
-## Install
+## Download
 
-1. Open the latest green run in **Actions → Build APK** and download the **`airx1-apk`** artifact (a zip containing the APK).
-2. Install it:
-   - From Termux over wireless debugging: `adb install -r airx1-*.apk`
-   - Or open the APK on the phone.
-3. Open AirX1, then grant **Camera** and **Notifications**.
-4. Tap **Open settings** next to *Accessibility service* and enable **AirX1**.
-   - **Toggle greyed out?** Android 13+ blocks accessibility for sideloaded apps. Go to *App info → ⋮ → Allow restricted settings*, then try again. Installing with `adb install` usually avoids this.
-5. Prop the phone up, run **Calibrate**, press **Start**, and hold a fist for 1 s to arm.
+**On your Android phone, open:**
 
-Debug log: `adb logcat -s AirX1`, or the in-app **Log** screen.
+### 👉 https://github.com/melhive/airx1/releases/latest/download/airx1.apk
+
+Tap the downloaded file and choose **Install**. The first time, Android asks you to allow "Install unknown apps" for your browser.
+
+- This link always gives the **newest version**, so you can share it with anyone.
+- Updates install **over** the old version and keep your settings.
+- All versions: https://github.com/melhive/airx1/releases
+
+## Set up (2 minutes)
+
+1. Open **AirX1** and tap **Grant** for Camera and Notifications.
+2. Tap **Open settings** next to *Accessibility service* and turn on **AirX1** (under *Installed apps* or *Downloaded apps*).
+   - **Toggle greyed out?** Android 13+ blocks accessibility for apps installed from a browser. Go back to AirX1 and tap **Open App info**, then tap **⋮** (top right) → **Allow restricted settings**, and turn AirX1 on again.
+3. Prop the phone up so the front camera can see your hand, 40–70 cm away.
+4. Tap **Calibrate** and follow the three steps (about 15 s).
+5. Tap **Start AirX1**, then hold a ✊ fist for 1 s to arm. The cursor turns into a ring.
+
+Debug log: the in-app **Log** screen, or `adb logcat -s AirX1` over USB or wireless debugging.
 
 ## Building
 
-GitHub Actions is the build system (`.github/workflows/build.yml`). It runs on every push and on manual dispatch:
+GitHub Actions is the build system. Nothing needs to be installed locally.
 
-1. JDK 17 and Gradle 8.11.1 (via `gradle/actions/setup-gradle`, no wrapper jar committed).
-2. Downloads `hand_landmarker.task` and checks its SHA-256 against `model.sha256`. The model is gitignored.
-3. Runs the unit tests (`testDebugUnitTest`).
-4. Builds a **release** APK if the signing secrets exist, otherwise a **debug** APK.
-5. Fails if the APK requests `android.permission.INTERNET`.
-6. Uploads the artifact **`airx1-apk`**.
+| Workflow | When | Output |
+|---|---|---|
+| `release.yml` | every push to `main`, or manual | Signed **GitHub Release** `v0.1.<N>` with `airx1.apk`, marked Latest |
+| `build.yml` | pushes to other branches, pull requests, or manual | Artifact `airx1-apk`: a **debug** APK ("AirX1 Debug", `com.melhive.airx1.debug`) that installs next to the real app |
+
+Both workflows download `hand_landmarker.task`, check its SHA-256 against `model.sha256`, run the unit tests, and fail if the APK requests `android.permission.INTERNET`. Releases also verify the APK signature. `N` is the release run number and becomes the `versionCode`, so every release is newer than the last.
 
 Local builds (optional) need an Android SDK. `gradle assembleDebug` downloads the model automatically.
 
-## Release signing (one-time, recommended)
+## Release signing
 
-Without these secrets, CI builds debug APKs. Each one may be signed with a different throwaway key, which forces you to uninstall before updating, and uninstalling turns the accessibility service off. Set the secrets once and every build updates in place.
+Releases are signed with one key stored as repository secrets. This is what lets Android install each release as an update. **Keep a private backup of the keystore and its password** (for example a USB stick and a password manager). If they are lost, installed copies can't be updated: users would have to uninstall and reinstall.
+
+| Secret | Value |
+|---|---|
+| `KEYSTORE_BASE64` | `base64 -w0 airx1-release.jks` |
+| `KEYSTORE_PASSWORD` | keystore password |
+| `KEY_PASSWORD` | key password (same as the keystore password for PKCS12) |
+
+The key alias is `airx1`. To create a key (only if starting over):
 
 ```bash
-# 1. Create a keystore (keep it safe and never commit it; *.jks is gitignored)
 keytool -genkeypair -v -keystore airx1-release.jks -alias airx1 \
   -keyalg RSA -keysize 4096 -validity 10000
-
-# 2. Base64-encode it for the GitHub secret
 base64 -w0 airx1-release.jks > airx1-release.jks.b64
 ```
-
-Then add the four repository secrets (Settings → Secrets and variables → Actions), or use `gh`:
-
-```bash
-gh secret set KEYSTORE_BASE64 < airx1-release.jks.b64
-gh secret set KEYSTORE_PASSWORD   # the store password you chose
-gh secret set KEY_ALIAS --body airx1
-gh secret set KEY_PASSWORD        # the key password (same as the store password if you pressed Enter)
-```
-
-Switching from debug to release builds changes the signature, so uninstall the debug build once before the first release install.
 
 ## Privacy
 
